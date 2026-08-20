@@ -25,16 +25,16 @@ jobs:
 
       - name: Generate Dummy Keystore & Matched Google Services
         run: |
-          # إنشاء مفتاح debug.keystore في المسار الرئيسي لـ app
+          # 1. إنشاء مفتاح debug.keystore
           keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           
-          # إنشاء ملف google-services.json بنفس الـ package_name المطلوب بالضبط
+          # 2. إنشاء ملف google-services.json بجميع معرفات الحزم لتجاوز التحقق
           cat << 'EOF' > app/google-services.json
           {
             "project_info": {
               "project_number": "123456789012",
-              "project_id": "virtualfolders-demo",
-              "storage_bucket": "virtualfolders-demo.appspot.com"
+              "project_id": "dummy-project-id",
+              "storage_bucket": "dummy-project-id.appspot.com"
             },
             "client": [
               {
@@ -42,6 +42,25 @@ jobs:
                   "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890",
                   "android_client_info": {
                     "package_name": "com.aistudio.virtualfolders.rhqnu1"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyDummyKeyForBuildValidationOnly12345"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              },
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789012:android:abcdef1234567891",
+                  "android_client_info": {
+                    "package_name": "com.example"
                   }
                 },
                 "oauth_client": [],
