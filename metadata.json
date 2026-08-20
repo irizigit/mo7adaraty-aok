@@ -1,0 +1,8 @@
+{
+  "name": "Remix محاضراتي",
+  "description": "تطبيق تنظيم وتخزين المحاضرات والمستندات بملفات نصية وسلة مهملات وخدمات نقل ونسب وسحب المحتوى",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
