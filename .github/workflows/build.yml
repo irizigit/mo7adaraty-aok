@@ -23,15 +23,43 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Generate Dummy Keystore & Google Services
+      - name: Generate Dummy Keystore & Matched Google Services
         run: |
-          # إنشاء مفتاح debug.keystore لتفادي خطأ validateSigningDebug
+          # إنشاء مفتاح debug.keystore في المسار الرئيسي لـ app
           keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           
-          # إنشاء google-services.json تجريبي إذا لم يكن موجوداً
-          if [ ! -f "app/google-services.json" ]; then
-            echo '{"project_info":{"project_number":"123456789","project_id":"dummy-project","storage_bucket":"dummy.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:123456","android_client_info":{"package_name":"com.example"}},"api_key":[{"current_key":"dummy_key"}]}]}' > app/google-services.json
-          fi
+          # إنشاء ملف google-services.json بنفس الـ package_name المطلوب بالضبط
+          cat << 'EOF' > app/google-services.json
+          {
+            "project_info": {
+              "project_number": "123456789012",
+              "project_id": "virtualfolders-demo",
+              "storage_bucket": "virtualfolders-demo.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890",
+                  "android_client_info": {
+                    "package_name": "com.aistudio.virtualfolders.rhqnu1"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyDummyKeyForBuildValidationOnly12345"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
 
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew || true
