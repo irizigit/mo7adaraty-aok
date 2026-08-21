@@ -23,36 +23,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Setup Environment and Strip Google Services Plugin
+      - name: Setup Wrapper & Keystore
         run: |
-          # 1. إنشاء Wrapper
           gradle wrapper
           chmod +x gradlew
-
-          # 2. حذف إضافة google-services المسببة للمشكلة من كود gradle تماماً
-          python3 -c "
-          for path in ['app/build.gradle.kts', 'build.gradle.kts', 'settings.gradle.kts']:
-              try:
-                  with open(path, 'r') as f:
-                      lines = f.readlines()
-                  with open(path, 'w') as f:
-                      for line in lines:
-                          if 'google-services' not in line and 'google.gms' not in line:
-                              f.write(line)
-              except Exception as e:
-                  pass
-          "
-
-          # 3. إنشاء keystore
           mkdir -p ~/.android app
           keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-          cp ~/.android/debug.keystore app/debug.keystore || true
+          cp ~/.android/debug.keystore app/debug.keystore
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon -x test -x lint
+        run: ./gradlew assembleDebug --no-daemon -x test -x lint --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: mo7adaraty-app
           path: app/build/outputs/apk/debug/*.apk
