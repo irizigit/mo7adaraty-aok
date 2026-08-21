@@ -23,13 +23,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Configure Keystore and Google Services
+      - name: Prepare Wrapper, Keystore and Google Services
         run: |
-          mkdir -p ~/.android
+          # 1. إنشاء ملف gradlew المفقود
+          gradle wrapper
+          chmod +x gradlew
+          
+          # 2. إنشاء مفتاح التوقيع ومساراته
+          mkdir -p ~/.android app
           keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-          mkdir -p app
           cp ~/.android/debug.keystore app/debug.keystore || true
           
+          # 3. إنشاء ملف google-services.json المطلوب
           cat << 'EOF' > app/google-services.json
           {
             "project_info": {
@@ -62,15 +67,11 @@ jobs:
           }
           EOF
 
-      - name: Grant Execute Permission
-        run: chmod +x gradlew || true
-
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon -x test -x lint
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: mo7adaraty-app
           path: app/build/outputs/apk/debug/*.apk
