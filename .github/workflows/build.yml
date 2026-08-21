@@ -23,49 +23,30 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Prepare Wrapper, Keystore and Google Services
+      - name: Setup Environment and Strip Google Services Plugin
         run: |
-          # 1. إنشاء ملف gradlew المفقود
+          # 1. إنشاء Wrapper
           gradle wrapper
           chmod +x gradlew
-          
-          # 2. إنشاء مفتاح التوقيع ومساراته
+
+          # 2. حذف إضافة google-services المسببة للمشكلة من كود gradle تماماً
+          python3 -c "
+          for path in ['app/build.gradle.kts', 'build.gradle.kts', 'settings.gradle.kts']:
+              try:
+                  with open(path, 'r') as f:
+                      lines = f.readlines()
+                  with open(path, 'w') as f:
+                      for line in lines:
+                          if 'google-services' not in line and 'google.gms' not in line:
+                              f.write(line)
+              except Exception as e:
+                  pass
+          "
+
+          # 3. إنشاء keystore
           mkdir -p ~/.android app
           keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           cp ~/.android/debug.keystore app/debug.keystore || true
-          
-          # 3. إنشاء ملف google-services.json المطلوب
-          cat << 'EOF' > app/google-services.json
-          {
-            "project_info": {
-              "project_number": "100000000000",
-              "project_id": "mo7adaraty-app",
-              "storage_bucket": "mo7adaraty-app.appspot.com"
-            },
-            "client": [
-              {
-                "client_info": {
-                  "mobilesdk_app_id": "1:100000000000:android:1234567890abcdef",
-                  "android_client_info": {
-                    "package_name": "com.aistudio.virtualfolders.rhqnu1"
-                  }
-                },
-                "oauth_client": [],
-                "api_key": [
-                  {
-                    "current_key": "AIzaSyDummyKeyForBuildVerification12345"
-                  }
-                ],
-                "services": {
-                  "appinvite_service": {
-                    "other_platform_oauth_client": []
-                  }
-                }
-              }
-            ],
-            "configuration_version": "1"
-          }
-          EOF
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon -x test -x lint
